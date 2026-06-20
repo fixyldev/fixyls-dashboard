@@ -1,19 +1,22 @@
 package dev.fixyl.dashboard.dto.cpu;
 
 import java.util.List;
-import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class Package {
+public class Cache {
 
     private int id;
 
-    private List<Die> dies;
+    private int level;
 
-    private Set<Cache> caches;
+    private String type;
+
+    private long size;
+
+    private List<Integer> cpuIds;
 
 }

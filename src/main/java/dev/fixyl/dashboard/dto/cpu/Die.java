@@ -1,6 +1,7 @@
 package dev.fixyl.dashboard.dto.cpu;
 
 import java.util.List;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,5 +13,7 @@ public class Die {
     private int id;
 
     private List<Cluster> clusters;
+
+    private Set<Cache> caches;
 
 }
