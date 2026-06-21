@@ -1,10 +1,8 @@
 package dev.fixyl.dashboard.service;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -19,15 +17,16 @@ import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
-import dev.fixyl.dashboard.dto.cpu.CPU;
-import dev.fixyl.dashboard.dto.cpu.Cache;
-import dev.fixyl.dashboard.dto.cpu.Cluster;
-import dev.fixyl.dashboard.dto.cpu.Core;
-import dev.fixyl.dashboard.dto.cpu.Die;
-import dev.fixyl.dashboard.dto.cpu.Package;
+import dev.fixyl.dashboard.data.cpu.CPU;
+import dev.fixyl.dashboard.data.cpu.Cache;
+import dev.fixyl.dashboard.data.cpu.Cluster;
+import dev.fixyl.dashboard.data.cpu.Core;
+import dev.fixyl.dashboard.data.cpu.Die;
+import dev.fixyl.dashboard.data.cpu.Package;
+import dev.fixyl.dashboard.data.cpu.Processor;
 
 @Service
-public class CPUService implements MetricService<List<Package>, Void> {
+public class CPUService implements MetricService<Processor, Void> {
 
     private static final int AVERAGE_CPU_COUNT = 16;
 
@@ -50,10 +49,10 @@ public class CPUService implements MetricService<List<Package>, Void> {
     private Map<Integer, String> cpuModelNames;
 
     @Override
-    public List<Package> getStatic() throws IOException {
+    public Processor getStatic() throws IOException {
         this.cpuModelNames = getModelNames();
 
-        return buildTopology(getPresentCPUs());
+        return new Processor(buildTopology(getPresentCPUs()));
     }
 
     @Override
@@ -62,7 +61,7 @@ public class CPUService implements MetricService<List<Package>, Void> {
         throw new UnsupportedOperationException("Unimplemented method 'getUpdate'");
     }
 
-    private CPU buildCPU(int cpuId) throws IOException {
+    private CPU buildCPU(int cpuId) {
         return new CPU(
             cpuId,
             this.cpuModelNames.get(cpuId),
@@ -71,24 +70,16 @@ public class CPUService implements MetricService<List<Package>, Void> {
     }
 
     private Core buildCore(List<Integer> cpuIds) throws IOException {
-        try {
-            List<List<Integer>> alreadyCheckedCpuIds = new ArrayList<>();
+        List<List<Integer>> alreadyCheckedCpuIds = new ArrayList<>();
 
-            return new Core(
-                getCoreId(cpuIds.getFirst()),
-                cpuIds.stream().map(cpuId -> {
-                    try {
-                        alreadyCheckedCpuIds.add(List.of(cpuId));
-                        return buildCPU(cpuId);
-                    } catch (IOException e) {
-                        throw new IOExceptionWrapper(e);
-                    }
-                }).toList(),
-                getFilteredCaches(cpuIds, alreadyCheckedCpuIds)
-            );
-        } catch (IOExceptionWrapper e) {
-            throw e.getIOException();
-        }
+        return new Core(
+            getCoreId(cpuIds.getFirst()),
+            cpuIds.stream().map(cpuId -> {
+                alreadyCheckedCpuIds.add(List.of(cpuId));
+                return buildCPU(cpuId);
+            }).toList(),
+            getFilteredCaches(cpuIds, alreadyCheckedCpuIds)
+        );
     }
 
     private Cluster buildCluster(List<Integer> cpuIds) throws IOException {
@@ -221,11 +212,11 @@ public class CPUService implements MetricService<List<Package>, Void> {
         try {
             for (int cpuId : cpuIds) {
                 for (Cache cache : getCaches(cpuId)) {
-                    if (cpuIds.containsAll(cache.getCpuIds())) {
+                    if (cpuIds.containsAll(cache.cpuIds())) {
                         boolean skip = false;
 
                         for (List<Integer> alreadyCheckedCpuIdList : alreadyCheckedCpuIds) {
-                            if (alreadyCheckedCpuIdList.containsAll(cache.getCpuIds())) {
+                            if (alreadyCheckedCpuIdList.containsAll(cache.cpuIds())) {
                                 skip = true;
                             }
                         }
