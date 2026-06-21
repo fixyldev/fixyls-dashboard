@@ -4,6 +4,7 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NonNull;
 
 @Data
 @AllArgsConstructor
@@ -13,10 +14,12 @@ public class Cache {
 
     private int level;
 
+    @NonNull
     private String type;
 
     private long size;
 
+    @NonNull
     private List<Integer> cpuIds;
 
 }

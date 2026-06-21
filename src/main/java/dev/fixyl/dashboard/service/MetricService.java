@@ -1,9 +1,11 @@
 package dev.fixyl.dashboard.service;
 
+import java.io.IOException;
+
 public interface MetricService<S, U> {
 
-    S getStatic();
+    S getStatic() throws IOException;
 
-    U getUpdate();
+    U getUpdate() throws IOException;
 
 }

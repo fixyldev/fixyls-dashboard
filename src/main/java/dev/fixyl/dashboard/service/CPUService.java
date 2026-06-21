@@ -1,12 +1,19 @@
 package dev.fixyl.dashboard.service;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -20,9 +27,11 @@ import dev.fixyl.dashboard.dto.cpu.Die;
 import dev.fixyl.dashboard.dto.cpu.Package;
 
 @Service
-public class CPUService implements MetricService<Void, Void> {
+public class CPUService implements MetricService<List<Package>, Void> {
 
     private static final int AVERAGE_CPU_COUNT = 16;
+
+    private static final Path CPU_INFO = Path.of("/proc/cpuinfo");
 
     private static final String CACHES_DIR = "/sys/devices/system/cpu/cpu%s/cache";
 
@@ -38,14 +47,17 @@ public class CPUService implements MetricService<Void, Void> {
 
     private static final Path PRESENT_CPUS = Path.of("/sys/devices/system/cpu/present");
 
+    private Map<Integer, String> cpuModelNames;
+
     @Override
-    public Void getStatic() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getStatic'");
+    public List<Package> getStatic() throws IOException {
+        this.cpuModelNames = getModelNames();
+
+        return buildTopology(getPresentCPUs());
     }
 
     @Override
-    public Void getUpdate() {
+    public Void getUpdate() throws IOException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getUpdate'");
     }
@@ -53,6 +65,7 @@ public class CPUService implements MetricService<Void, Void> {
     private CPU buildCPU(int cpuId) throws IOException {
         return new CPU(
             cpuId,
+            this.cpuModelNames.get(cpuId),
             getFilteredCaches(List.of(cpuId), List.of())
         );
     }
@@ -160,27 +173,73 @@ public class CPUService implements MetricService<Void, Void> {
         return packages;
     }
 
-    private Set<Cache> getFilteredCaches(List<Integer> cpuIds, List<List<Integer>> alreadyCheckedCpuIds) throws IOException {
+    private Map<Integer, String> getModelNames() {
+        Map<Integer, String> modelNames = new HashMap<>();
+
+        try (
+            FileReader fileReader = new FileReader(CPU_INFO.toFile());
+            BufferedReader reader = new BufferedReader(fileReader);
+        ) {
+            while (true) {
+                Optional<String> processor = getCPUInfoValue("processor", reader);
+                if (processor.isEmpty()) {
+                    break;
+                }
+
+                Optional<String> modelName = getCPUInfoValue("model name", reader);
+                if (modelName.isEmpty()) {
+                    return Map.of();  // The cpuinfo file wasn't formatted as expected
+                }
+
+                modelNames.put(Integer.valueOf(processor.orElseThrow()), modelName.orElseThrow());
+            }
+        } catch (IOException | NumberFormatException _) {
+            return Map.of();
+        }
+
+        return modelNames;
+    }
+
+    private Optional<String> getCPUInfoValue(String key, BufferedReader reader) throws IOException {
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] splitLines = line.split(":", 2);
+
+            if (splitLines.length == 2 && splitLines[0].stripTrailing().equals(key)) {
+                return Optional.of(splitLines[1].stripLeading());
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    // TODO: Reduce cognitive load and improve performance
+    //       by pivoting to sets instead of lists
+    private Set<Cache> getFilteredCaches(List<Integer> cpuIds, List<List<Integer>> alreadyCheckedCpuIds) {
         Set<Cache> caches = new HashSet<>();
 
-        for (int cpuId : cpuIds) {
-            for (Cache cache : getCaches(cpuId)) {
-                if (cpuIds.containsAll(cache.getCpuIds())) {
-                    boolean skip = false;
+        try {
+            for (int cpuId : cpuIds) {
+                for (Cache cache : getCaches(cpuId)) {
+                    if (cpuIds.containsAll(cache.getCpuIds())) {
+                        boolean skip = false;
 
-                    for (List<Integer> alreadyCheckedCpuIdList : alreadyCheckedCpuIds) {
-                        if (alreadyCheckedCpuIdList.containsAll(cache.getCpuIds())) {
-                            skip = true;
+                        for (List<Integer> alreadyCheckedCpuIdList : alreadyCheckedCpuIds) {
+                            if (alreadyCheckedCpuIdList.containsAll(cache.getCpuIds())) {
+                                skip = true;
+                            }
                         }
-                    }
 
-                    if (skip) {
-                        continue;
-                    }
+                        if (skip) {
+                            continue;
+                        }
 
-                    caches.add(cache);
+                        caches.add(cache);
+                    }
                 }
             }
+        } catch (IOException | NumberFormatException _) {
+            return Set.of();
         }
 
         return caches;
