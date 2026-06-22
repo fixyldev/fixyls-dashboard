@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 import org.springframework.util.StringUtils;
 
+import dev.fixyl.dashboard.util.SizeUtils;
+
 public class Processor {
 
     private static final int AVERAGE_CPU_COUNT = 16;
@@ -56,6 +58,16 @@ public class Processor {
 
     public Optional<Long> getCacheSize(int level) {
         return Optional.ofNullable(this.cacheSizes.get(level));
+    }
+
+    public Optional<String> getReadableCacheSize(int level) {
+        Long size = this.cacheSizes.get(level);
+
+        if (size != null) {
+            return Optional.of(SizeUtils.bytesToString(size));
+        } else {
+            return Optional.empty();
+        }
     }
 
     private static List<CPU> gatherCPUs(List<Package> packages) {

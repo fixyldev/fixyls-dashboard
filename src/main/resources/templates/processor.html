@@ -1,0 +1,17 @@
+<div id="processor" class="panel" th:fragment="processor" th:if="${#ctx.containsVariable('processor')}">
+    <p class="text header">CPU</p>
+    <p class="text subheader" th:if="${processor.name.isPresent()}" th:text="${processor.name.orElseThrow()}">N/A</p>
+    <hr class="separator_h">
+    <div class="group">
+        <div th:replace="~{segments :: segment ('Socket(s)', ${processor.socketCount})}"></div>
+        <div th:replace="~{segments :: segment ('Core(s)', ${processor.coreCount})}"></div>
+        <div th:replace="~{segments :: segment ('Thread(s)', ${processor.threadCount})}"></div>
+    </div>
+    <hr class="separator_w">
+    <div class="group">
+        <div th:replace="~{segments :: optionalSegment ('L1 Cache', ${processor.getReadableCacheSize(1)})}"></div>
+        <div th:replace="~{segments :: optionalSegment ('L2 Cache', ${processor.getReadableCacheSize(2)})}"></div>
+        <div th:replace="~{segments :: optionalSegment ('L3 Cache', ${processor.getReadableCacheSize(3)})}"></div>
+        <div th:replace="~{segments :: optionalSegment ('L4 Cache', ${processor.getReadableCacheSize(4)})}"></div>
+    </div>
+</div>

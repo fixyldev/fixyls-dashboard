@@ -26,7 +26,7 @@ import dev.fixyl.dashboard.data.cpu.Package;
 import dev.fixyl.dashboard.data.cpu.Processor;
 
 @Service
-public class CPUService implements MetricService<Processor, Void> {
+public class ProcessorService implements MetricService<Processor, Void> {
 
     private static final int AVERAGE_CPU_COUNT = 16;
 

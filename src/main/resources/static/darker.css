@@ -1,0 +1,20 @@
+body {
+    background-color: #000000;
+}
+
+.panel {
+    border-style: solid;
+    border-color: #747474;
+}
+
+.separator_h {
+    background-color: #a4a4a4;
+}
+
+.separator_w {
+    background-color: #747474;
+}
+
+.text {
+    color: #efefef;
+}

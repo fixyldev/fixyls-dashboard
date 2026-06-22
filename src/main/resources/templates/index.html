@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dark.css">
+    <title>Fixyl's Dashboard</title>
+</head>
+<body>
+
+    <canvas id="particles"></canvas>
+    <script defer src="particles.js"></script>
+
+    <div id="title">
+        <p class="text title">Fixyl's Dashboard</p>
+    </div>
+
+    <div id="container">
+        <div th:replace="~{processor :: processor}"></div>
+    </div>
+
+</body>
+</html>
