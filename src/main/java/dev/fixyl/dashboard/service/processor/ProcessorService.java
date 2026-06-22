@@ -1,4 +1,4 @@
-package dev.fixyl.dashboard.service;
+package dev.fixyl.dashboard.service.processor;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import dev.fixyl.dashboard.data.cpu.CPU;
@@ -24,9 +25,11 @@ import dev.fixyl.dashboard.data.cpu.Core;
 import dev.fixyl.dashboard.data.cpu.Die;
 import dev.fixyl.dashboard.data.cpu.Package;
 import dev.fixyl.dashboard.data.cpu.Processor;
+import dev.fixyl.dashboard.data.cpu.ProcessorUpdate;
+import dev.fixyl.dashboard.service.processor.provider.FrequencyProvider;
 
 @Service
-public class ProcessorService implements MetricService<Processor, Void> {
+public class ProcessorService {
 
     private static final int AVERAGE_CPU_COUNT = 16;
 
@@ -46,26 +49,50 @@ public class ProcessorService implements MetricService<Processor, Void> {
 
     private static final Path PRESENT_CPUS = Path.of("/sys/devices/system/cpu/present");
 
+    private final FrequencyProvider frequencyProvider;
+
     private Map<Integer, String> cpuModelNames;
 
-    @Override
-    public Processor getStatic() throws IOException {
-        this.cpuModelNames = getModelNames();
+    @Nullable
+    private Processor processor;
 
-        return new Processor(buildTopology(getPresentCPUs()));
+    public ProcessorService(FrequencyProvider frequencyProvider) {
+        this.frequencyProvider = frequencyProvider;
+
+        // TODO: Clear this constructor and initialize data differently
+        this.cpuModelNames = Map.of();
+
+        this.rebuildProcessor();
     }
 
-    @Override
-    public Void getUpdate() throws IOException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUpdate'");
+    public boolean rebuildProcessor() {
+        this.cpuModelNames = getModelNames();
+
+        try {
+            this.processor = new Processor(buildTopology(getPresentCPUs()));
+        } catch (IOException _) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public Optional<Processor> getProcessor() {
+        return Optional.ofNullable(this.processor);
+    }
+
+    public Optional<ProcessorUpdate> getUpdate() {
+        return Optional.empty();
     }
 
     private CPU buildCPU(int cpuId) {
         return new CPU(
             cpuId,
             this.cpuModelNames.get(cpuId),
-            getFilteredCaches(List.of(cpuId), List.of())
+            getFilteredCaches(List.of(cpuId), List.of()),
+            frequencyProvider.getBaseFrequency(cpuId).orElse(null),
+            frequencyProvider.getMaxFrequency(cpuId).orElse(null),
+            frequencyProvider.getMinFrequency(cpuId).orElse(null)
         );
     }
 
@@ -172,8 +199,8 @@ public class ProcessorService implements MetricService<Processor, Void> {
             BufferedReader reader = new BufferedReader(fileReader);
         ) {
             while (true) {
-                Optional<String> processor = getCPUInfoValue("processor", reader);
-                if (processor.isEmpty()) {
+                Optional<String> cpuId = getCPUInfoValue("processor", reader);
+                if (cpuId.isEmpty()) {
                     break;
                 }
 
@@ -182,7 +209,7 @@ public class ProcessorService implements MetricService<Processor, Void> {
                     return Map.of();  // The cpuinfo file wasn't formatted as expected
                 }
 
-                modelNames.put(Integer.valueOf(processor.orElseThrow()), modelName.orElseThrow());
+                modelNames.put(Integer.valueOf(cpuId.orElseThrow()), modelName.orElseThrow());
             }
         } catch (IOException | NumberFormatException _) {
             return Map.of();

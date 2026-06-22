@@ -1,12 +1,10 @@
 package dev.fixyl.dashboard.controller;
 
-import java.io.IOException;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import dev.fixyl.dashboard.service.ProcessorService;
+import dev.fixyl.dashboard.service.processor.ProcessorService;
 
 @Controller
 public class TemplateController {
@@ -19,9 +17,9 @@ public class TemplateController {
 
     @GetMapping
     public String index(Model model) {
-        try {
-            model.addAttribute("processor", processorService.getStatic());
-        } catch (IOException _) { /* Don't do anything */ }
+        processorService.getProcessor().ifPresent(processor ->
+            model.addAttribute("processor", processor)
+        );
 
         return "index";
     }
