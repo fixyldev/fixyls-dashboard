@@ -1,4 +1,4 @@
-package dev.fixyl.dashboard.service.processor;
+package dev.fixyl.dashboard.service;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -29,7 +29,7 @@ import dev.fixyl.dashboard.data.cpu.Die;
 import dev.fixyl.dashboard.data.cpu.Package;
 import dev.fixyl.dashboard.data.cpu.Processor;
 import dev.fixyl.dashboard.data.cpu.ProcessorUpdate;
-import dev.fixyl.dashboard.service.processor.provider.FrequencyProvider;
+import dev.fixyl.dashboard.service.provider.FrequencyProvider;
 import dev.fixyl.dashboard.util.DataUtils;
 
 @Service
@@ -78,6 +78,7 @@ public class ProcessorService {
 
     @Scheduled(fixedRate = UPDATE_INTERVAL)
     private void update() {
+        // TODO: Use AtomicBoolean to skip an interval if we cannot finish within a second and the next interval would run in parallel
         if (!sseController.isClientWaiting()) {
             return;
         }

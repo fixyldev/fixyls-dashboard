@@ -1,4 +1,4 @@
-package dev.fixyl.dashboard.service.processor.provider;
+package dev.fixyl.dashboard.service.provider;
 
 import java.io.IOException;
 import java.util.Optional;
