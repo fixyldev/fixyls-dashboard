@@ -21,6 +21,10 @@ public class TemplateController {
             model.addAttribute("processor", processor)
         );
 
+        processorService.getUpdate().ifPresent(update ->
+            model.addAttribute("processorUpdate", update)
+        );
+
         return "index";
     }
 

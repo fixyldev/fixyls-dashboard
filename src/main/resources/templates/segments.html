@@ -1,4 +1,4 @@
-<div class="segment" th:fragment="segment (label, value)">
+<div class="segment" th:fragment="segment (label, value, id)" th:id="${id}">
     <p class="text label" th:text="${label}">N/A</p>
     <p class="text value" th:text="${value}">N/A</p>
 </div>

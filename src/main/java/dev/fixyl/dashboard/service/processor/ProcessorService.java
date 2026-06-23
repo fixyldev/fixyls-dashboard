@@ -13,11 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import dev.fixyl.dashboard.controller.SseController;
 import dev.fixyl.dashboard.data.cpu.CPU;
 import dev.fixyl.dashboard.data.cpu.Cache;
 import dev.fixyl.dashboard.data.cpu.Cluster;
@@ -27,9 +30,12 @@ import dev.fixyl.dashboard.data.cpu.Package;
 import dev.fixyl.dashboard.data.cpu.Processor;
 import dev.fixyl.dashboard.data.cpu.ProcessorUpdate;
 import dev.fixyl.dashboard.service.processor.provider.FrequencyProvider;
+import dev.fixyl.dashboard.util.DataUtils;
 
 @Service
 public class ProcessorService {
+
+    private static final long UPDATE_INTERVAL = 1000L;  // 1 second
 
     private static final int AVERAGE_CPU_COUNT = 16;
 
@@ -48,6 +54,10 @@ public class ProcessorService {
     private static final String PACKAGE_CPUS = "/sys/devices/system/cpu/cpu%s/topology/package_cpus_list";
 
     private static final Path PRESENT_CPUS = Path.of("/sys/devices/system/cpu/present");
+    private static final Path ONLINE_CPUS = Path.of("/sys/devices/system/cpu/online");
+    private static final Path OFFLINE_CPUS = Path.of("/sys/devices/system/cpu/offline");
+
+    private final SseController sseController;
 
     private final FrequencyProvider frequencyProvider;
 
@@ -56,7 +66,8 @@ public class ProcessorService {
     @Nullable
     private Processor processor;
 
-    public ProcessorService(FrequencyProvider frequencyProvider) {
+    public ProcessorService(SseController sseController, FrequencyProvider frequencyProvider) {
+        this.sseController = sseController;
         this.frequencyProvider = frequencyProvider;
 
         // TODO: Clear this constructor and initialize data differently
@@ -65,11 +76,20 @@ public class ProcessorService {
         this.rebuildProcessor();
     }
 
+    @Scheduled(fixedRate = UPDATE_INTERVAL)
+    private void update() {
+        if (!sseController.isClientWaiting()) {
+            return;
+        }
+
+        sseController.sendEvent("processorUpdate", getUpdate());
+    }
+
     public boolean rebuildProcessor() {
         this.cpuModelNames = getModelNames();
 
         try {
-            this.processor = new Processor(buildTopology(getPresentCPUs()));
+            this.processor = new Processor(buildTopology(getOnlineCPUs()));
         } catch (IOException _) {
             return false;
         }
@@ -82,7 +102,27 @@ public class ProcessorService {
     }
 
     public Optional<ProcessorUpdate> getUpdate() {
-        return Optional.empty();
+        Map<Integer, @Nullable String> freqs = new TreeMap<>();
+
+        try {
+            for (Integer cpuId : getOnlineCPUs()) {
+                Optional<Long> freq = frequencyProvider.getCurrentFrequency(cpuId);
+
+                if (freq.isEmpty()) {
+                    return Optional.empty();
+                }
+
+                freqs.put(cpuId, DataUtils.hertzToString(freq.orElseThrow()));
+            }
+
+            for (Integer cpuId : getOfflineCPUs()) {
+                freqs.put(cpuId, "offline");
+            }
+        } catch (IOException _) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new ProcessorUpdate(freqs));
     }
 
     private CPU buildCPU(int cpuId) {
@@ -334,6 +374,14 @@ public class ProcessorService {
 
     private List<Integer> getPresentCPUs() throws IOException {
         return parseCPUList(readFile(PRESENT_CPUS));
+    }
+
+    private List<Integer> getOnlineCPUs() throws IOException {
+        return parseCPUList(readFile(ONLINE_CPUS));
+    }
+
+    private List<Integer> getOfflineCPUs() throws IOException {
+        return parseCPUList(readFile(OFFLINE_CPUS));
     }
 
     private List<Integer> parseCPUList(String cpuList) {

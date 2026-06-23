@@ -53,4 +53,8 @@ public class SseController {
             }
         }
     }
+
+    public boolean isClientWaiting() {
+        return !emitters.isEmpty();
+    }
 }
