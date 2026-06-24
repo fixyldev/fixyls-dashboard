@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class StatFile extends CompositeFile {
 
     private static final String STAT_PATH = "/proc/stat";
