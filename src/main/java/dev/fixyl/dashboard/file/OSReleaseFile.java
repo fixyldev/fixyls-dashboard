@@ -6,7 +6,7 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OSReleaseFile extends POSIXCompositeFile {
+public class OSReleaseFile extends INICompositeFile {
 
     private static final String OS_RELEASE_PATH = "/etc/os-release";
 
