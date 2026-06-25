@@ -3,6 +3,10 @@
     <p class="text subheader" th:text="${system.hostname}">N/A</p>
     <hr class="separator_h">
     <div class="group">
+        <div th:replace="~{segments :: pendingSegment ('Uptime', 'system-uptime')}"></div>
+    </div>
+    <hr class="separator_w">
+    <div class="group">
         <div th:replace="~{segments :: segment ('OS', ${system.os}, null)}"></div>
         <div th:replace="~{segments :: segment ('Kernel', ${system.kernel}, null)}"></div>
     </div>

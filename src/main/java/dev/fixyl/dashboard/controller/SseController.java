@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import dev.fixyl.dashboard.service.SystemService;
 import tools.jackson.databind.ObjectMapper;
 
 @RestController
@@ -20,6 +21,12 @@ public class SseController {
 
     private final Set<SseEmitter> emitters = ConcurrentHashMap.newKeySet();
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final SystemService systemService;
+
+    public SseController(SystemService systemService) {
+        this.systemService = systemService;
+    }
 
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter createEventStream() {
@@ -34,7 +41,7 @@ public class SseController {
         emitters.add(emitter);
 
         try {
-            emitter.send(SseEmitter.event().name("init").data("established"));
+            emitter.send(SseEmitter.event().name("systemInit").data(systemService.getSystem().orElse(null)));
         } catch (IOException | IllegalStateException _) {
             cleanup.run();
         }

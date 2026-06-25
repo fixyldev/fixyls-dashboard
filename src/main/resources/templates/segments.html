@@ -1,7 +1,9 @@
-<div class="segment" th:fragment="segment (label, value, id)" th:id="${id}">
-    <p class="text label" th:text="${label}">N/A</p>
-    <p class="text value" th:text="${value}">N/A</p>
+<div class="segment" th:fragment="segment (label, value, id)">
+    <p class="text label" th:text="${label}"></p>
+    <p class="text value" th:id="${id}" th:text="${value} ?: 'N/A'"></p>
 </div>
+
+<div th:fragment="pendingSegment (label, id)" th:replace="~{:: segment (${label}, 'pending...', ${id})}"></div>
 
 <div class="segment" th:fragment="optionalSegment (label, optional)" th:if="${optional.isPresent()}">
     <p class="text label" th:text="${label}">N/A</p>
