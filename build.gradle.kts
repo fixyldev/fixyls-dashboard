@@ -36,6 +36,7 @@ dependencies {
 
     // Miscellaneous
     implementation("org.apache.commons:commons-configuration2:2.15.1")
+    implementation("commons-beanutils:commons-beanutils:1.11.0")  // Dependency of commons-configuration2
 }
 
 tasks.withType<Test> {
