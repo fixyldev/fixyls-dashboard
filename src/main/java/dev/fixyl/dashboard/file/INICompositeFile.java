@@ -1,22 +1,26 @@
 package dev.fixyl.dashboard.file;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.configuration2.INIConfiguration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.io.FileHandler;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class INICompositeFile extends CompositeFile {
 
-    private final String path;
+    private final Path path;
     private final Set<String> keys;
 
-    protected INICompositeFile(String path, Set<String> keys) {
+    protected INICompositeFile(Path path, Set<String> keys) {
         this.path = path;
         this.keys = Set.copyOf(keys);
     }
@@ -25,8 +29,11 @@ public abstract class INICompositeFile extends CompositeFile {
     protected final Map<String, String> readFile() {
         Map<String, String> values = new HashMap<>();
 
-        try {
-            INIConfiguration config = new Configurations().ini(path);
+        try (
+            BufferedReader reader = Files.newBufferedReader(path);
+        ) {
+            INIConfiguration config = new INIConfiguration();
+            new FileHandler(config).load(reader);
 
             for (String key : keys) {
                 String value = config.getString(key);
@@ -35,7 +42,7 @@ public abstract class INICompositeFile extends CompositeFile {
                     values.put(key, value);
                 }
             }
-        } catch (ConfigurationException e) {
+        } catch (IOException | ConfigurationException e) {
             log.debug("Couldn't read INI composite file '{}'", path, e);
             return Map.of();
         }

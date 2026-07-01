@@ -1,7 +1,20 @@
 package dev.fixyl.dashboard.service;
 
+import static dev.fixyl.dashboard.constant.Paths.PROC_CPUINFO;
+import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_CACHE_DIR_TEMPLATE;
+import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_OFFLINE;
+import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_ONLINE;
+import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_PRESENT;
+import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_TOPO_CLUSTER_CPUS_TEMPLATE;
+import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_TOPO_CLUSTER_ID_TEMPLATE;
+import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_TOPO_CORE_CPUS_TEMPLATE;
+import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_TOPO_CORE_ID_TEMPLATE;
+import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_TOPO_DIE_CPUS_TEMPLATE;
+import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_TOPO_DIE_ID_TEMPLATE;
+import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_TOPO_PACKAGE_CPUS_TEMPLATE;
+import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_TOPO_PACKAGE_ID_TEMPLATE;
+
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +42,7 @@ import dev.fixyl.dashboard.data.cpu.Die;
 import dev.fixyl.dashboard.data.cpu.Package;
 import dev.fixyl.dashboard.data.cpu.Processor;
 import dev.fixyl.dashboard.data.cpu.ProcessorUpdate;
+import dev.fixyl.dashboard.file.PathResolver;
 import dev.fixyl.dashboard.service.provider.FrequencyProvider;
 import dev.fixyl.dashboard.util.DataUtils;
 
@@ -39,36 +53,29 @@ public class ProcessorService {
 
     private static final int AVERAGE_CPU_COUNT = 16;
 
-    private static final Path CPU_INFO = Path.of("/proc/cpuinfo");
-
-    private static final String CACHES_DIR = "/sys/devices/system/cpu/cpu%s/cache";
-
-    private static final String CORE_ID = "/sys/devices/system/cpu/cpu%s/topology/core_id";
-    private static final String CLUSTER_ID = "/sys/devices/system/cpu/cpu%s/topology/cluster_id";
-    private static final String DIE_ID = "/sys/devices/system/cpu/cpu%s/topology/die_id";
-    private static final String PACKAGE_ID = "/sys/devices/system/cpu/cpu%s/topology/physical_package_id";
-
-    private static final String CORE_CPUS = "/sys/devices/system/cpu/cpu%s/topology/core_cpus_list";
-    private static final String CLUSTER_CPUS = "/sys/devices/system/cpu/cpu%s/topology/cluster_cpus_list";
-    private static final String DIE_CPUS = "/sys/devices/system/cpu/cpu%s/topology/die_cpus_list";
-    private static final String PACKAGE_CPUS = "/sys/devices/system/cpu/cpu%s/topology/package_cpus_list";
-
-    private static final Path PRESENT_CPUS = Path.of("/sys/devices/system/cpu/present");
-    private static final Path ONLINE_CPUS = Path.of("/sys/devices/system/cpu/online");
-    private static final Path OFFLINE_CPUS = Path.of("/sys/devices/system/cpu/offline");
-
     private final SseController sseController;
-
     private final FrequencyProvider frequencyProvider;
+    private final PathResolver pathResolver;
+
+    private final Path cpuInfoFile;
+    private final Path presentCPUsFile;
+    private final Path onlineCPUsFile;
+    private final Path offlineCPUsFile;
 
     private Map<Integer, String> cpuModelNames;
 
     @Nullable
     private Processor processor;
 
-    public ProcessorService(SseController sseController, FrequencyProvider frequencyProvider) {
+    public ProcessorService(SseController sseController, FrequencyProvider frequencyProvider, PathResolver pathResolver) {
         this.sseController = sseController;
         this.frequencyProvider = frequencyProvider;
+        this.pathResolver = pathResolver;
+
+        this.cpuInfoFile = pathResolver.resolve(PROC_CPUINFO);
+        this.presentCPUsFile = pathResolver.resolve(SYS_CPU_PRESENT);
+        this.onlineCPUsFile = pathResolver.resolve(SYS_CPU_ONLINE);
+        this.offlineCPUsFile = pathResolver.resolve(SYS_CPU_OFFLINE);
 
         // TODO: Clear this constructor and initialize data differently
         this.cpuModelNames = Map.of();
@@ -236,8 +243,7 @@ public class ProcessorService {
         Map<Integer, String> modelNames = new HashMap<>();
 
         try (
-            FileReader fileReader = new FileReader(CPU_INFO.toFile());
-            BufferedReader reader = new BufferedReader(fileReader);
+            BufferedReader reader = Files.newBufferedReader(cpuInfoFile);
         ) {
             while (true) {
                 Optional<String> cpuId = getCPUInfoValue("processor", reader);
@@ -306,7 +312,7 @@ public class ProcessorService {
 
     private List<Cache> getCaches(int cpuId) throws IOException {
         try (
-            Stream<Path> paths = Files.list(Path.of(String.format(CACHES_DIR, cpuId)));
+            Stream<Path> paths = Files.list(pathResolver.resolve(SYS_CPU_CACHE_DIR_TEMPLATE, cpuId));
         ) {
             return paths.filter(Files::isDirectory)
                 .map(Path::getFileName)
@@ -330,59 +336,59 @@ public class ProcessorService {
     }
 
     private Cache getCache(int cpuId, String index) throws IOException {
-        String cachesDir = String.format(CACHES_DIR, cpuId);
+        Path cacheDir = pathResolver.resolve(SYS_CPU_CACHE_DIR_TEMPLATE, cpuId);
 
         return new Cache(
-            Integer.parseInt(readFile(Path.of(cachesDir, index, "id"))),
-            Integer.parseInt(readFile(Path.of(cachesDir, index, "level"))),
-            readFile(Path.of(cachesDir, index, "type")),
-            parseSize(readFile(Path.of(cachesDir, index, "size"))),
-            parseCPUList(readFile(Path.of(cachesDir, index, "shared_cpu_list")))
+            Integer.parseInt(readFile(cacheDir.resolve(index, "id"))),
+            Integer.parseInt(readFile(cacheDir.resolve(index, "level"))),
+            readFile(cacheDir.resolve(index, "type")),
+            parseSize(readFile(cacheDir.resolve(index, "size"))),
+            parseCPUList(readFile(cacheDir.resolve(index, "shared_cpu_list")))
         );
     }
 
     private int getCoreId(int cpuId) throws IOException {
-        return Integer.parseInt(readFile(String.format(CORE_ID, cpuId)));
+        return Integer.parseInt(readFile(pathResolver.resolve(SYS_CPU_TOPO_CORE_ID_TEMPLATE, cpuId)));
     }
 
     private int getClusterId(int cpuId) throws IOException {
-        return Integer.parseInt(readFile(String.format(CLUSTER_ID, cpuId)));
+        return Integer.parseInt(readFile(pathResolver.resolve(SYS_CPU_TOPO_CLUSTER_ID_TEMPLATE, cpuId)));
     }
 
     private int getDieId(int cpuId) throws IOException {
-        return Integer.parseInt(readFile(String.format(DIE_ID, cpuId)));
+        return Integer.parseInt(readFile(pathResolver.resolve(SYS_CPU_TOPO_DIE_ID_TEMPLATE, cpuId)));
     }
 
     private int getPackageId(int cpuId) throws IOException {
-        return Integer.parseInt(readFile(String.format(PACKAGE_ID, cpuId)));
+        return Integer.parseInt(readFile(pathResolver.resolve(SYS_CPU_TOPO_PACKAGE_ID_TEMPLATE, cpuId)));
     }
 
     private List<Integer> getCoreCPUs(int cpuId) throws IOException {
-        return parseCPUList(readFile(String.format(CORE_CPUS, cpuId)));
+        return parseCPUList(readFile(pathResolver.resolve(SYS_CPU_TOPO_CORE_CPUS_TEMPLATE, cpuId)));
     }
 
     private List<Integer> getClusterCPUs(int cpuId) throws IOException {
-        return parseCPUList(readFile(String.format(CLUSTER_CPUS, cpuId)));
+        return parseCPUList(readFile(pathResolver.resolve(SYS_CPU_TOPO_CLUSTER_CPUS_TEMPLATE, cpuId)));
     }
 
     private List<Integer> getDieCPUs(int cpuId) throws IOException {
-        return parseCPUList(readFile(String.format(DIE_CPUS, cpuId)));
+        return parseCPUList(readFile(pathResolver.resolve(SYS_CPU_TOPO_DIE_CPUS_TEMPLATE, cpuId)));
     }
 
     private List<Integer> getPackageCPUs(int cpuId) throws IOException {
-        return parseCPUList(readFile(String.format(PACKAGE_CPUS, cpuId)));
+        return parseCPUList(readFile(pathResolver.resolve(SYS_CPU_TOPO_PACKAGE_CPUS_TEMPLATE, cpuId)));
     }
 
     private List<Integer> getPresentCPUs() throws IOException {
-        return parseCPUList(readFile(PRESENT_CPUS));
+        return parseCPUList(readFile(presentCPUsFile));
     }
 
     private List<Integer> getOnlineCPUs() throws IOException {
-        return parseCPUList(readFile(ONLINE_CPUS));
+        return parseCPUList(readFile(onlineCPUsFile));
     }
 
     private List<Integer> getOfflineCPUs() throws IOException {
-        return parseCPUList(readFile(OFFLINE_CPUS));
+        return parseCPUList(readFile(offlineCPUsFile));
     }
 
     private List<Integer> parseCPUList(String cpuList) {

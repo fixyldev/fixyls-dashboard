@@ -1,8 +1,11 @@
 package dev.fixyl.dashboard.file;
 
+import static dev.fixyl.dashboard.constant.Paths.PROC_STAT;
+
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -13,9 +16,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class StatFile extends CompositeFile {
 
-    private static final String STAT_PATH = "/proc/stat";
-
     private static final Set<String> keys = Set.of("btime");
+
+    private final Path statFilePath;
+
+    public StatFile(PathResolver pathResolver) {
+        this.statFilePath = pathResolver.resolve(PROC_STAT);
+    }
 
     public Optional<String> getBootTime() {
         return getValue("btime");
@@ -26,8 +33,7 @@ public class StatFile extends CompositeFile {
         Map<String, String> values = new HashMap<>();
 
         try (
-            FileReader fileReader = new FileReader(STAT_PATH);
-            BufferedReader reader = new BufferedReader(fileReader);
+            BufferedReader reader = Files.newBufferedReader(statFilePath);
         ) {
             String line;
             while ((line = reader.readLine()) != null) {

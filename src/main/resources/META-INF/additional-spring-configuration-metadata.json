@@ -1,0 +1,9 @@
+{
+    "properties": [
+        {
+            "name": "fixyls-dashboard.path.host-root-dir",
+            "type": "java.nio.file.Path",
+            "description": "The mount point of the host's root filesystem."
+        }
+    ]
+}

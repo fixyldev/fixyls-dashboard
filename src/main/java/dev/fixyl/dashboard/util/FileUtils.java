@@ -9,24 +9,8 @@ public final class FileUtils {
 
     private FileUtils() {}
 
-    public static String readFile(String path, Object... args) throws IOException {
-        return readFile(String.format(path, args));
-    }
-
-    public static String readFile(String path) throws IOException {
-        return readFile(Path.of(path));
-    }
-
     public static String readFile(Path path) throws IOException {
         return Files.readString(path).trim();
-    }
-
-    public static Optional<String> readFileOrEmpty(String path, Object... args) {
-        return readFileOrEmpty(String.format(path, args));
-    }
-
-    public static Optional<String> readFileOrEmpty(String path) {
-        return readFileOrEmpty(Path.of(path));
     }
 
     public static Optional<String> readFileOrEmpty(Path path) {
