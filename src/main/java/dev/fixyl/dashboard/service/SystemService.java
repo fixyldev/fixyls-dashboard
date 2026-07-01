@@ -7,8 +7,8 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import dev.fixyl.dashboard.data.system.ShutdownDTO;
-import dev.fixyl.dashboard.data.system.SystemDTO;
+import dev.fixyl.dashboard.dto.system.ShutdownDTO;
+import dev.fixyl.dashboard.dto.system.SystemDTO;
 import dev.fixyl.dashboard.service.provider.SystemProvider;
 import dev.fixyl.dashboard.sse.SseEmitterRegistry;
 

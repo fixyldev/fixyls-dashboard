@@ -1,4 +1,4 @@
-package dev.fixyl.dashboard.data.system;
+package dev.fixyl.dashboard.dto.system;
 
 import org.jspecify.annotations.Nullable;
 
