@@ -15,7 +15,7 @@ import org.apache.commons.configuration2.io.FileHandler;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class INICompositeFile extends CompositeFile {
+public abstract class INICompositeFile extends CompositeFile<String> {
 
     private final Path path;
     private final Set<String> keys;

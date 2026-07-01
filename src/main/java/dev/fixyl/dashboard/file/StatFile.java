@@ -14,9 +14,9 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StatFile extends CompositeFile {
+public class StatFile extends CompositeFile<String> {
 
-    private static final Set<String> keys = Set.of("btime");
+    private final Set<String> keys = Set.of("btime");
 
     private final Path statFilePath;
 

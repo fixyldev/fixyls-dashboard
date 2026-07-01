@@ -3,16 +3,16 @@ package dev.fixyl.dashboard.file;
 import java.util.Map;
 import java.util.Optional;
 
-public abstract class CompositeFile {
+public abstract class CompositeFile<T> {
 
     private static final long TTL_MILLIS = 900L;
 
-    private Map<String, String> values;
+    private Map<String, T> values;
     private long expiry = -1L;
 
-    protected abstract Map<String, String> readFile();
+    protected abstract Map<String, T> readFile();
 
-    protected final synchronized Optional<String> getValue(String key) {
+    protected final synchronized Optional<T> getValue(String key) {
         long now = System.currentTimeMillis();
 
         if (now >= expiry) {
