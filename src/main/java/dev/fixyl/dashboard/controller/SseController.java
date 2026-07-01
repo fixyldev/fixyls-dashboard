@@ -1,67 +1,26 @@
 package dev.fixyl.dashboard.controller;
 
-import java.io.IOException;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import dev.fixyl.dashboard.service.SystemService;
-import tools.jackson.databind.ObjectMapper;
+import dev.fixyl.dashboard.sse.SseEmitterRegistry;
 
 @RestController
 @RequestMapping("/api/sse")
 public class SseController {
 
-    private static final long TIMEOUT = 60_000L;  // 60 seconds
+    private final SseEmitterRegistry registry;
 
-    private final Set<SseEmitter> emitters = ConcurrentHashMap.newKeySet();
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    private final SystemService systemService;
-
-    public SseController(SystemService systemService) {
-        this.systemService = systemService;
+    public SseController(SseEmitterRegistry registry) {
+        this.registry = registry;
     }
 
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter createEventStream() {
-        SseEmitter emitter = new SseEmitter(TIMEOUT);
-
-        Runnable cleanup = () -> emitters.remove(emitter);
-
-        emitter.onCompletion(cleanup);
-        emitter.onTimeout(cleanup);
-        emitter.onError(_ -> cleanup.run());
-
-        emitters.add(emitter);
-
-        try {
-            emitter.send(SseEmitter.event().name("systemInit").data(systemService.getSystem().orElse(null)));
-        } catch (IOException | IllegalStateException _) {
-            cleanup.run();
-        }
-
-        return emitter;
+    public SseEmitter stream() {
+        return registry.register();
     }
 
-    public void sendEvent(String name, Object data) {
-        String json = objectMapper.writeValueAsString(data);
-
-        for (SseEmitter emitter : emitters) {
-            try {
-                emitter.send(SseEmitter.event().name(name).data(json));
-            } catch (IOException | IllegalStateException _) {
-                emitters.remove(emitter);
-            }
-        }
-    }
-
-    public boolean isClientWaiting() {
-        return !emitters.isEmpty();
-    }
 }

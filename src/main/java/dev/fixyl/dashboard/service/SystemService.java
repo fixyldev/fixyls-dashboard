@@ -1,52 +1,72 @@
 package dev.fixyl.dashboard.service;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jspecify.annotations.Nullable;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import dev.fixyl.dashboard.data.system.System;
-import dev.fixyl.dashboard.data.system.SystemUpdate;
+import dev.fixyl.dashboard.data.system.ShutdownDTO;
+import dev.fixyl.dashboard.data.system.SystemDTO;
 import dev.fixyl.dashboard.service.provider.SystemProvider;
+import dev.fixyl.dashboard.sse.SseEmitterRegistry;
 
 @Service
-public class SystemService extends TickingService {
+public class SystemService {
 
+    private static final long INTERVAL_MILLIS = 1000L;
+    private static final String EVENT_NAME = "system";
+
+    private final AtomicBoolean isRunning = new AtomicBoolean(false);
+
+    private final SseEmitterRegistry registry;
     private final SystemProvider systemProvider;
 
-    private @Nullable System system;
-    private @Nullable SystemUpdate update;
-
-    public SystemService(SystemProvider systemProvider) {
+    public SystemService(SseEmitterRegistry registry, SystemProvider systemProvider) {
+        this.registry = registry;
         this.systemProvider = systemProvider;
     }
 
-    public Optional<System> getSystem() {
-        return Optional.ofNullable(system);
+    @Scheduled(fixedRate = INTERVAL_MILLIS)
+    private void tick() {
+        if (!isRunning.compareAndSet(false, true)) {
+            return;
+        }
+
+        try {
+            update();
+        } finally {
+            isRunning.lazySet(false);
+        }
     }
 
-    public Optional<SystemUpdate> getUpdate() {
-        return Optional.ofNullable(update);
+    private void update() {
+        registry.broadcast(EVENT_NAME, buildSystemDTO());
     }
 
-    public void buildSystem() {
-        system = new System(
+    private SystemDTO buildSystemDTO() {
+        return new SystemDTO(
             systemProvider.getOSName().orElse(null),
             systemProvider.getKernelVersion().orElse(null),
             systemProvider.getHostname().orElse(null),
-            systemProvider.getBootTime().orElse(null)
+            systemProvider.getBootTime().orElse(null),
+            buildShutdownDTO()
         );
     }
 
-    @Override
-    protected void update() {
-    }
+    private @Nullable ShutdownDTO buildShutdownDTO() {
+        Optional<String> mode = systemProvider.getShutdownMode();
 
-    @EventListener(ApplicationReadyEvent.class)
-    private void init() {
-        buildSystem();
+        if (mode.isEmpty()) {
+            return null;
+        }
+
+        return new ShutdownDTO(
+            systemProvider.getShutdownTime().orElse(null),
+            mode.orElseThrow(),
+            systemProvider.getShutdownMessage().orElse(null)
+        );
     }
 
 }

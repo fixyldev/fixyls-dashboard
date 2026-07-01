@@ -9,6 +9,9 @@ public final class Paths {
     public static final String PROC_KERNEL_RELEASE = "proc/sys/kernel/osrelease";
     public static final String PROC_STAT = "proc/stat";
 
+    public static final String RUN_SHUTDOWN_DIR = "run/systemd/shutdown";
+    public static final String RUN_SHUTDOWN_SCHEDULED = "run/systemd/shutdown/scheduled";
+
     public static final String SYS_CPU_CACHE_DIR_TEMPLATE = "sys/devices/system/cpu/cpu%s/cache";
     public static final String SYS_CPU_FREQ_BASE_TEMPLATE = "sys/devices/system/cpu/cpu%s/cpufreq/base_frequency";
     public static final String SYS_CPU_FREQ_CURRENT_TEMPLATE = "sys/devices/system/cpu/cpu%s/cpufreq/scaling_cur_freq";
