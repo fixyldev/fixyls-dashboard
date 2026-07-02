@@ -5,8 +5,8 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 public record FrequencyDTO(
-    @Nullable Long baseFrequency,
-    @Nullable Long maxFrequency,
-    @Nullable Long minFrequency,
-    Map<Integer, Long> currentFrequencies
+    @Nullable Long base,
+    @Nullable Long max,
+    @Nullable Long min,
+    Map<Integer, Long> current
 ) {}
