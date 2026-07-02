@@ -5,7 +5,7 @@ import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_TOPO_PACKAGE_ID_TEMPLAT
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Optional;
+import java.util.OptionalInt;
 
 import org.springframework.stereotype.Component;
 
@@ -21,21 +21,21 @@ public class TopologyProvider {
         this.pathResolver = pathResolver;
     }
 
-    public Optional<Integer> getPackageId(int cpuId) {
+    public OptionalInt getPackageId(int cpuId) {
         return readCount(SYS_CPU_TOPO_PACKAGE_ID_TEMPLATE, cpuId);
     }
 
-    public Optional<Integer> getCoreId(int cpuId) {
+    public OptionalInt getCoreId(int cpuId) {
         return readCount(SYS_CPU_TOPO_CORE_ID_TEMPLATE, cpuId);
     }
 
-    private Optional<Integer> readCount(String templatePath, Object... args) {
+    private OptionalInt readCount(String templatePath, Object... args) {
         Path path = pathResolver.resolve(templatePath, args);
 
         try {
-            return Optional.of(Integer.parseInt(FileUtils.readFile(path)));
+            return OptionalInt.of(Integer.parseInt(FileUtils.readFile(path)));
         } catch (IOException | NumberFormatException _) {
-            return Optional.empty();
+            return OptionalInt.empty();
         }
     }
 

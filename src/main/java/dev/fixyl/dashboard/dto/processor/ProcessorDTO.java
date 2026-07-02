@@ -6,7 +6,7 @@ public record ProcessorDTO(
     @Nullable String modelName,
     @Nullable Integer socketCount,
     @Nullable Integer coreCount,
-    @Nullable Integer threadCount,
+    int threadCount,
     @Nullable CacheDTO cache,
     @Nullable FrequencyDTO frequency
 ) {}

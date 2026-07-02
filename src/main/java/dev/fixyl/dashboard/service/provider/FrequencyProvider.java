@@ -7,7 +7,7 @@ import static dev.fixyl.dashboard.constant.Paths.SYS_CPU_FREQ_MIN_TEMPLATE;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Optional;
+import java.util.OptionalLong;
 
 import org.springframework.stereotype.Component;
 
@@ -25,29 +25,29 @@ public class FrequencyProvider {
         this.pathResolver = pathResolver;
     }
 
-    public Optional<Long> getBaseFrequency(int cpuId) {
+    public OptionalLong getBaseFrequency(int cpuId) {
         return readFrequency(SYS_CPU_FREQ_BASE_TEMPLATE, cpuId);
     }
 
-    public Optional<Long> getMaxFrequency(int cpuId) {
+    public OptionalLong getMaxFrequency(int cpuId) {
         return readFrequency(SYS_CPU_FREQ_MAX_TEMPLATE, cpuId);
     }
 
-    public Optional<Long> getMinFrequency(int cpuId) {
+    public OptionalLong getMinFrequency(int cpuId) {
         return readFrequency(SYS_CPU_FREQ_MIN_TEMPLATE, cpuId);
     }
 
-    public Optional<Long> getCurrentFrequency(int cpuId) {
+    public OptionalLong getCurrentFrequency(int cpuId) {
         return readFrequency(SYS_CPU_FREQ_CURRENT_TEMPLATE, cpuId);
     }
 
-    private Optional<Long> readFrequency(String templatePath, Object... args) {
+    private OptionalLong readFrequency(String templatePath, Object... args) {
         Path path = pathResolver.resolve(templatePath, args);
 
         try {
-            return Optional.of(Long.parseLong(FileUtils.readFile(path)) * MULTIPLIER);
+            return OptionalLong.of(Long.parseLong(FileUtils.readFile(path)) * MULTIPLIER);
         } catch (IOException | NumberFormatException _) {
-            return Optional.empty();
+            return OptionalLong.empty();
         }
     }
 

@@ -17,16 +17,8 @@ public final class Paths {
     public static final String SYS_CPU_FREQ_CURRENT_TEMPLATE = "sys/devices/system/cpu/cpu%s/cpufreq/scaling_cur_freq";
     public static final String SYS_CPU_FREQ_MAX_TEMPLATE = "sys/devices/system/cpu/cpu%s/cpufreq/scaling_max_freq";
     public static final String SYS_CPU_FREQ_MIN_TEMPLATE = "sys/devices/system/cpu/cpu%s/cpufreq/scaling_min_freq";
-    public static final String SYS_CPU_OFFLINE = "sys/devices/system/cpu/offline";
     public static final String SYS_CPU_ONLINE = "sys/devices/system/cpu/online";
-    public static final String SYS_CPU_PRESENT = "sys/devices/system/cpu/present";
-    public static final String SYS_CPU_TOPO_CLUSTER_CPUS_TEMPLATE = "sys/devices/system/cpu/cpu%s/topology/cluster_cpus_list";
-    public static final String SYS_CPU_TOPO_CLUSTER_ID_TEMPLATE = "sys/devices/system/cpu/cpu%s/topology/cluster_id";
-    public static final String SYS_CPU_TOPO_CORE_CPUS_TEMPLATE = "sys/devices/system/cpu/cpu%s/topology/core_cpus_list";
     public static final String SYS_CPU_TOPO_CORE_ID_TEMPLATE = "sys/devices/system/cpu/cpu%s/topology/core_id";
-    public static final String SYS_CPU_TOPO_DIE_CPUS_TEMPLATE = "sys/devices/system/cpu/cpu%s/topology/die_cpus_list";
-    public static final String SYS_CPU_TOPO_DIE_ID_TEMPLATE = "sys/devices/system/cpu/cpu%s/topology/die_id";
-    public static final String SYS_CPU_TOPO_PACKAGE_CPUS_TEMPLATE = "sys/devices/system/cpu/cpu%s/topology/package_cpus_list";
     public static final String SYS_CPU_TOPO_PACKAGE_ID_TEMPLATE = "sys/devices/system/cpu/cpu%s/topology/physical_package_id";
 
     private Paths() {}
