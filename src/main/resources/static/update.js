@@ -7,6 +7,12 @@ const eventSource = new EventSource(sseUrl);
 
 let currentBootTime = Number.NaN;
 
+export function addSseListener(eventName, eventListener) {
+    eventSource.addEventListener(eventName, event => {
+        eventListener(JSON.parse(event.data));
+    });
+}
+
 eventSource.addEventListener("systemInit", (event) => {
     systemInit(JSON.parse(event.data));
 })

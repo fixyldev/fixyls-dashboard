@@ -13,12 +13,9 @@ export function secondsToString(seconds) {
     h = h % 24;
 
     let time = "";
-    if (d)
-        time += d + TIME_UNITS[3] + " ";
-    if (h || d)
-        time += h + TIME_UNITS[2] + " ";
-    if (m || h && d)
-        time += m + TIME_UNITS[1] + " ";
+    if (d) { time += d + TIME_UNITS[3] + " "; }
+    if (h || d) { time += h + TIME_UNITS[2] + " "; }
+    if (m || h && d) { time += m + TIME_UNITS[1] + " "; }
 
     return time + s + TIME_UNITS[0];
 }

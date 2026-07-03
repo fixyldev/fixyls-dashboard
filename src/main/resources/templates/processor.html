@@ -1,4 +1,6 @@
 <div th:fragment="processor" th:replace="~{elements :: panel ('processor', 'CPU', ~{:: processor-body})}"><th:block th:ref="processor-body">
+    <script src="processor.js" type="module"></script>
+
     <div th:replace="~{elements :: subheader ('processor-model-name')}"></div>
 
     <div th:replace="~{elements :: group ('processor-meta', ~{:: processor-meta-body})}"><th:block th:ref="processor-meta-body">
@@ -18,6 +20,6 @@
     </th:block></div>
 
     <div th:replace="~{elements :: group ('processor-freq', ~{:: processor-freq-body})}"><th:block th:ref="processor-freq-body">
-        <div th:replace="~{elements :: dynamic-data ('processor-freq-data')}"></div>
+        <div th:replace="~{elements :: dynamic-data ('processor-freq-current')}"></div>
     </th:block></div>
 </th:block></div>
