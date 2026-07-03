@@ -1,29 +1,23 @@
-<div id="processor" class="panel" th:fragment="processor" th:if="${#ctx.containsVariable('processor')}">
-    <p class="text header">CPU</p>
-    <p class="text subheader" th:if="${processor.name.isPresent()}" th:text="${processor.name.orElseThrow()}">N/A</p>
-    <hr class="separator_h">
-    <div class="group">
-        <div th:replace="~{segments :: segment ('Socket(s)', ${processor.socketCount}, null)}"></div>
-        <div th:replace="~{segments :: segment ('Core(s)', ${processor.coreCount}, null)}"></div>
-        <div th:replace="~{segments :: segment ('Thread(s)', ${processor.threadCount}, null)}"></div>
-    </div>
-    <hr class="separator_w">
-    <div class="group">
-        <div th:replace="~{segments :: optionalSegment ('Base Speed', ${processor.baseFrequency})}"></div>
-        <div th:replace="~{segments :: optionalSegment ('Max. Speed', ${processor.maxFrequency})}"></div>
-        <div th:replace="~{segments :: optionalSegment ('Min. Speed', ${processor.minFrequency})}"></div>
-    </div>
-    <hr class="separator_w">
-    <div class="group">
-        <div th:replace="~{segments :: optionalSegment ('L1 Cache', ${processor.getReadableCacheSize(1)})}"></div>
-        <div th:replace="~{segments :: optionalSegment ('L2 Cache', ${processor.getReadableCacheSize(2)})}"></div>
-        <div th:replace="~{segments :: optionalSegment ('L3 Cache', ${processor.getReadableCacheSize(3)})}"></div>
-        <div th:replace="~{segments :: optionalSegment ('L4 Cache', ${processor.getReadableCacheSize(4)})}"></div>
-    </div>
-    <hr class="separator_w">
-    <div class="group">
-        <th:block th:each="entry : ${processorUpdate.currentFrequencies}">
-            <div th:replace="~{segments :: segment ('CPU ' + ${entry.key}, ${entry.value}, 'cpu' + ${entry.key})}"></div>
-        </th:block>
-    </div>
-</div>
+<div th:fragment="processor" th:replace="~{elements :: panel ('processor', 'CPU', ~{:: processor-body})}"><th:block th:ref="processor-body">
+    <div th:replace="~{elements :: subheader ('processor-model-name')}"></div>
+
+    <div th:replace="~{elements :: group ('processor-meta', ~{:: processor-meta-body})}"><th:block th:ref="processor-meta-body">
+        <div th:replace="~{elements :: data ('processor-meta-socket-count', 'Socket(s)')}"></div>
+        <div th:replace="~{elements :: data ('processor-meta-core-count', 'Core(s)')}"></div>
+        <div th:replace="~{elements :: data ('processor-meta-thread-count', 'Thread(s)')}"></div>
+        <div th:replace="~{elements :: data ('processor-meta-base-freq', 'Base Speed')}"></div>
+        <div th:replace="~{elements :: data ('processor-meta-max-freq', 'Max. Speed')}"></div>
+        <div th:replace="~{elements :: data ('processor-meta-min-freq', 'Min. Speed')}"></div>
+    </th:block></div>
+
+    <div th:replace="~{elements :: group ('processor-cache', ~{:: processor-cache-body})}"><th:block th:ref="processor-cache-body">
+        <div th:replace="~{elements :: data ('processor-cache-level-1', 'L1 Cache')}"></div>
+        <div th:replace="~{elements :: data ('processor-cache-level-2', 'L2 Cache')}"></div>
+        <div th:replace="~{elements :: data ('processor-cache-level-3', 'L3 Cache')}"></div>
+        <div th:replace="~{elements :: data ('processor-cache-level-4', 'L4 Cache')}"></div>
+    </th:block></div>
+
+    <div th:replace="~{elements :: group ('processor-freq', ~{:: processor-freq-body})}"><th:block th:ref="processor-freq-body">
+        <div th:replace="~{elements :: dynamic-data ('processor-freq-data')}"></div>
+    </th:block></div>
+</th:block></div>

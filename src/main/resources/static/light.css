@@ -7,14 +7,14 @@ body {
     border-style: hidden;
 }
 
-.separator_h {
-    background-color: #858585;
-}
-
-.separator_w {
+hr {
     background-color: #747474;
 }
 
-.text {
+hr:first-of-type {
+    background-color: #858585;
+}
+
+p {
     color: #000000;
 }

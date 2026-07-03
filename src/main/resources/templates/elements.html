@@ -1,0 +1,18 @@
+<div class="panel" th:id="${id}" th:fragment="panel (id, title, body)">
+    <p class="header" th:text="${title}"></p>
+    <div th:replace="${body}"></div>
+</div>
+
+<p class="subheader" th:id="${id}" th:fragment="subheader (id)">N/A</p>
+
+<div class="group" th:id="${id}" th:fragment="group (id, body)">
+    <hr>
+    <div th:replace="${body}"></div>
+</div>
+
+<div class="dynamic-data" th:id="${id}" th:fragment="dynamic-data (id)"></div>
+
+<div class="data" th:id="${id}" th:fragment="data (id, label)">
+    <p class="label" th:text="${label}"></p>
+    <p class="value">N/A</p>
+</div>

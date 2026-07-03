@@ -1,13 +1,13 @@
-<div id="system" class="panel" th:fragment="system" th:if="${#ctx.containsVariable('system')}">
-    <p class="text header">System</p>
-    <p class="text subheader" th:text="${system.hostname}">N/A</p>
-    <hr class="separator_h">
-    <div class="group">
-        <div th:replace="~{segments :: pendingSegment ('Uptime', 'system-uptime')}"></div>
-    </div>
-    <hr class="separator_w">
-    <div class="group">
-        <div th:replace="~{segments :: segment ('OS', ${system.os}, null)}"></div>
-        <div th:replace="~{segments :: segment ('Kernel', ${system.kernel}, null)}"></div>
-    </div>
-</div>
+<div th:fragment="system" th:replace="~{elements :: panel ('system', 'System', ~{:: system-body})}"><th:block th:ref="system-body">
+    <div th:replace="~{elements :: subheader ('system-hostname')}"></div>
+
+    <div th:replace="~{elements :: group ('system-status', ~{:: system-status-body})}"><th:block th:ref="system-status-body">
+        <div th:replace="~{elements :: data ('system-status-uptime', 'Uptime')}"></div>
+        <div th:replace="~{elements :: data ('system-status-shutdown', 'Shutdown')}"></div>
+    </th:block></div>
+
+    <div th:replace="~{elements :: group ('system-info', ~{:: system-info-body})}"><th:block th:ref="system-info-body">
+        <div th:replace="~{elements :: data ('system-info-os', 'OS')}"></div>
+        <div th:replace="~{elements :: data ('system-info-kernel', 'Kernel')}"></div>
+    </th:block></div>
+</th:block></div>
