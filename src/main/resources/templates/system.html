@@ -1,4 +1,6 @@
 <div th:fragment="system" th:replace="~{elements :: panel ('system', 'System', ~{:: system-body})}"><th:block th:ref="system-body">
+    <script src="system.js" type="module"></script>
+
     <div th:replace="~{elements :: subheader ('system-hostname')}"></div>
 
     <div th:replace="~{elements :: group ('system-status', ~{:: system-status-body})}"><th:block th:ref="system-status-body">

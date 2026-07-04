@@ -1,6 +1,6 @@
-import { addSseListener } from "./update.js";
-import { Data, DynamicData, setElementVisibility, Subheader } from "./elements.js";
 import { bytesToString, hertzToString } from "./data.js";
+import { Data, DynamicData, setElementVisibility, Subheader } from "./elements.js";
+import { registerSseListener } from "./sse.js";
 
 const EVENT_NAME = "processor";
 
@@ -24,7 +24,7 @@ const cacheLevel4 = new Data("processor-cache-level-4", bytesToString);
 // group - freq
 const currentFreqs = new DynamicData("processor-freq-current", key => `CPU-${key}`, hertzToString);
 
-addSseListener(EVENT_NAME, update);
+registerSseListener(EVENT_NAME, update);
 
 function update(data) {
     const visible = data !== null;
