@@ -1,4 +1,4 @@
-<div class="panel" th:id="${id}" th:fragment="panel (id, title, body)">
+<div class="panel hidden" th:id="${id}" th:fragment="panel (id, title, body)">
     <p class="header" th:text="${title}"></p>
     <div th:replace="${body}"></div>
 </div>

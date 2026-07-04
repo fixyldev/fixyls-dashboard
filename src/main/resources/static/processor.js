@@ -1,5 +1,6 @@
 import { addSseListener } from "./update.js";
 import { Data, DynamicData, setElementVisibility, Subheader } from "./elements.js";
+import { bytesToString, hertzToString } from "./data.js";
 
 const EVENT_NAME = "processor";
 
@@ -10,18 +11,18 @@ const modelName = new Subheader("processor-model-name");
 const socketCount = new Data("processor-meta-socket-count");
 const coreCount = new Data("processor-meta-core-count");
 const threadCount = new Data("processor-meta-thread-count");
-const baseFreq = new Data("processor-meta-base-freq");
-const maxFreq = new Data("processor-meta-max-freq");
-const minFreq = new Data("processor-meta-min-freq");
+const baseFreq = new Data("processor-meta-base-freq", hertzToString);
+const maxFreq = new Data("processor-meta-max-freq", hertzToString);
+const minFreq = new Data("processor-meta-min-freq", hertzToString);
 
 // group - cache
-const cacheLevel1 = new Data("processor-cache-level-1");
-const cacheLevel2 = new Data("processor-cache-level-2");
-const cacheLevel3 = new Data("processor-cache-level-3");
-const cacheLevel4 = new Data("processor-cache-level-4");
+const cacheLevel1 = new Data("processor-cache-level-1", bytesToString);
+const cacheLevel2 = new Data("processor-cache-level-2", bytesToString);
+const cacheLevel3 = new Data("processor-cache-level-3", bytesToString);
+const cacheLevel4 = new Data("processor-cache-level-4", bytesToString);
 
 // group - freq
-const currentFreqs = new DynamicData("processor-freq-current", key => `CPU${key}`);
+const currentFreqs = new DynamicData("processor-freq-current", key => `CPU-${key}`, hertzToString);
 
 addSseListener(EVENT_NAME, update);
 
