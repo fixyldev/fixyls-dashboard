@@ -64,6 +64,7 @@ export class Data {
 export class LocallyProcessedData {
 
     #id;
+    #value;
     #baseData;
     #dataProcessor;
 
@@ -83,8 +84,13 @@ export class LocallyProcessedData {
         setElementVisibility(this.#id, visible);
         if (!visible) { return; }
 
-        getValueElementById(this.#id).textContent = this.#dataProcessor(this.#baseData);
+        const processedData = this.#dataProcessor(this.#baseData);
+        if (this.#value !== processedData) {
+            getValueElementById(this.#id).textContent = processedData;
+            this.#value = processedData;
+        }
     }
+
 }
 
 export class DynamicData {
