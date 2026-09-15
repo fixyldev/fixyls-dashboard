@@ -3,7 +3,7 @@
 ## Building
 
 ```sh
-docker buildx build --platform linux/amd64,linux/arm64 -t fixyldev/fixyls-dashboard:latest .
+docker buildx build -t fixyldev/fixyls-dashboard:latest .
 ```
 
 ## Run
